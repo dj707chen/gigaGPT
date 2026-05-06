@@ -31,15 +31,27 @@ Here are some training curves from start of the runs of three of these configs (
 ## Quick start
 
 ### Environment setup
-To create your python environment, simply run `pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu` for CPU/CSX runs or `pip install -r requirements.txt` for GPU runs. We suggest you do this
-from a virtual environment. The `requirements.txt` file contains seven simple dependencies, of which `cerebras.pytorch` is the only one which isn’t already widely used in the open-source community.
+This project is managed with [`uv`](https://docs.astral.sh/uv/). Dependencies are defined in `pyproject.toml` and pinned in `uv.lock`.
+
+```bash
+# once per machine (project uses Python 3.8)
+uv python install 3.8
+
+# CPU/CSX runs
+uv sync --python 3.8 --extra-index-url https://download.pytorch.org/whl/cpu
+
+# GPU runs
+uv sync --python 3.8
+```
+
+`cerebras_pytorch==2.5.0` publishes Linux x86_64 wheels, so run `uv sync` on a Linux x86_64 host.
 
 ### Download the datasets
 The first step is to generate the training data. The data preprocessing code is taken directly from nanoGPT
 and is quite simple. For example, to preprocess OWT, run
 
 ```bash
-python data/openwebtext/prepare.py
+uv run python data/openwebtext/prepare.py
 ```
 
 Each individual dataset directory has a README describing some basic characteristics of it. The smaller
@@ -55,13 +67,13 @@ To train a small 111M parameter model, run the following command. This will work
 (although CPU will be too slow to get that far).
 
 ```bash
-python train.py configs/111m.yaml
+uv run python train.py configs/111m.yaml
 ```
 
 To train a 70B parameter model on a single CS system, run:
 
 ```bash
-python train.py configs/70b.yaml
+uv run python train.py configs/70b.yaml
 ```
 
 The 70B model will not work on GPUs due to memory limitations.
@@ -69,7 +81,7 @@ The 70B model will not work on GPUs due to memory limitations.
 Similarly, to run a 70B model on a cluster of 16 CS systems, change `num_systems` to `16` in `configs/70b.yaml` and run
 
 ```bash
-python train.py configs/70b.yaml
+uv run python train.py configs/70b.yaml
 ```
 
 Note that it's exactly the same command regardless of the number of systems you are parallelizing across.
@@ -80,7 +92,7 @@ Note that it's exactly the same command regardless of the number of systems you 
 In order to get upstream evaluation numbers, you can use the `eval.py` script, for example
 
 ```bash
-python eval.py configs/70b.yaml --checkpoint_path /path/to/checkpoint.mdl
+uv run python eval.py configs/70b.yaml --checkpoint_path /path/to/checkpoint.mdl
 ```
 
 ## Generation
@@ -88,7 +100,7 @@ python eval.py configs/70b.yaml --checkpoint_path /path/to/checkpoint.mdl
 Generation on GPU or CPU is supported through the HuggingFace transformers library. For example,
 
 ```bash
-python sample.py --checkpoint_path model_dir/checkpoint_10000.mdl
+uv run python sample.py --checkpoint_path model_dir/checkpoint_10000.mdl
 ```
 
 See `sample.py` for more information on the different options you can play with to improve

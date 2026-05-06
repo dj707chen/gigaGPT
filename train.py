@@ -30,7 +30,7 @@ logger.setLevel(logging.INFO)
 
 
 def main(model_config, config, cs_config):
-    backend = cstorch.backend(config.backend, cluster_config=cs_config)
+    backend: Any = cstorch.backend(config.backend, cluster_config=cs_config)
 
     out_dir = Path(config.out_dir)
 
