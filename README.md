@@ -34,17 +34,20 @@ Here are some training curves from start of the runs of three of these configs (
 This project is managed with [`uv`](https://docs.astral.sh/uv/). Dependencies are defined in `pyproject.toml` and pinned in `uv.lock`.
 
 ```bash
-# once per machine (project uses Python 3.8)
+# once per machine for the original Linux x86_64/Cerebras PyTorch 2.5 flow
 uv python install 3.8
 
-# CPU/CSX runs
+# Linux x86_64 CPU/CSX runs
 uv sync --python 3.8 --extra-index-url https://download.pytorch.org/whl/cpu
 
 # GPU runs
 uv sync --python 3.8
+
+# macOS arm64 using the local Cerebras PyTorch source at ../cerebras-pytorch-src
+uv sync --python 3.11
 ```
 
-`cerebras_pytorch==2.5.0` publishes Linux x86_64 wheels, so run `uv sync` on a Linux x86_64 host.
+`cerebras_pytorch==2.5.0` publishes Linux x86_64 wheels, so use Python 3.8 on a Linux x86_64 host for that original flow. On macOS arm64, this repo resolves `cerebras-pytorch==2.10.0` from `../cerebras-pytorch-src/cerebras_pytorch-2.10.0`, which requires Python 3.11 or newer.
 
 ### Download the datasets
 The first step is to generate the training data. The data preprocessing code is taken directly from nanoGPT
