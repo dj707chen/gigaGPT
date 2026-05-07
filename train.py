@@ -33,7 +33,7 @@ def main(model_config, config, cs_config):
     backend_kwargs = {}
     if config.backend == "CSX":
         backend_kwargs["cluster_config"] = cs_config
-    backend: Any = cstorch.backend(config.backend, **backend_kwargs)
+    backend = cstorch.backend(config.backend, **backend_kwargs)
 
     out_dir = Path(config.out_dir)
 
