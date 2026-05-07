@@ -30,7 +30,10 @@ logger.setLevel(logging.INFO)
 
 
 def main(model_config, config, cs_config):
-    backend: Any = cstorch.backend(config.backend, cluster_config=cs_config)
+    backend_kwargs = {}
+    if config.backend == "CSX":
+        backend_kwargs["cluster_config"] = cs_config
+    backend: Any = cstorch.backend(config.backend, **backend_kwargs)
 
     out_dir = Path(config.out_dir)
 
@@ -83,7 +86,10 @@ def main(model_config, config, cs_config):
     if config.checkpoint_path is not None:
         logger.info(f"Loading checkpoint from {config.checkpoint_path}")
 
-        state_dict = cstorch.load(config.checkpoint_path)
+        if config.backend == "CSX":
+            state_dict = cstorch.load(config.checkpoint_path)
+        else:
+            state_dict = torch.load(config.checkpoint_path, weights_only=False)
 
         model.load_state_dict(state_dict["model"])
         if "optimizer" in state_dict:
@@ -94,8 +100,9 @@ def main(model_config, config, cs_config):
     else:
         global_step = 0
 
-    cstorch.backends.csx.debug.execute_crd_memory_gi = config.execute_crd_memory_gi
-    cstorch.backends.csx.debug.compile_crd_memory_gi = config.compile_crd_memory_gi
+    if config.backend == "CSX":
+        cstorch.backends.csx.debug.execute_crd_memory_gi = config.execute_crd_memory_gi
+        cstorch.backends.csx.debug.compile_crd_memory_gi = config.compile_crd_memory_gi
     
     @cstorch.checkpoint_closure
     def save_checkpoint(step):
@@ -107,7 +114,10 @@ def main(model_config, config, cs_config):
             "global_step": step,
             "model_config": asdict(model_config),
         }
-        cstorch.save(state_dict, checkpoint_path)
+        if config.backend == "CSX":
+            cstorch.save(state_dict, checkpoint_path)
+        else:
+            torch.save(state_dict, checkpoint_path)
         logger.info(f"Saved checkpoint to {checkpoint_path}")
 
     @cstorch.trace

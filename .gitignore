@@ -1,6 +1,8 @@
 data/shakespeare_char/input.txt
 data/shakespeare_char/*.pkl
 data/shakespeare_char/*.bin
+executors
+0000*
 
 CSL/SDK
 

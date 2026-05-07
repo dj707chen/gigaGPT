@@ -106,11 +106,17 @@ wheels = [
 ]
 
 [[package]]
+name = "cerebras-appliance"
+version = "2.10.0"
+source = { editable = "../cerebras-appliance-src/cerebras_appliance-2.10.0" }
+
+[[package]]
 name = "cerebras-pytorch"
 version = "2.10.0"
 source = { editable = "../cerebras-pytorch-src/cerebras_pytorch-2.10.0" }
 dependencies = [
     { name = "boto3", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or sys_platform == 'darwin'" },
+    { name = "cerebras-appliance", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or sys_platform == 'darwin'" },
     { name = "dill", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or sys_platform == 'darwin'" },
     { name = "grpcio", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or sys_platform == 'darwin'" },
     { name = "grpcio-tools", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or sys_platform == 'darwin'" },
@@ -131,6 +137,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = "<2" },
+    { name = "cerebras-appliance", editable = "../cerebras-appliance-src/cerebras_appliance-2.10.0" },
     { name = "dill", specifier = ">=0.3.8" },
     { name = "grpcio", specifier = ">=1.51.1" },
     { name = "grpcio-tools", specifier = ">=1.51.1" },
