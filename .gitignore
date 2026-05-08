@@ -1,0 +1,9 @@
+*.swp
+.idea
+
+__pycache__/
+data/openwebtext/train.bin
+data/openwebtext/val.bin
+executors/
+model_dir/
+
