@@ -11,12 +11,15 @@ dependencies = [
     "tqdm==4.66.1",
     "cerebras_pytorch>=2.5.0",
     "datasets==2.19.1",
+    "h5py>=3.16.0",
+    "hdf5plugin>=6.0.0",
+    "zstandard>=0.25.0",
+    "dill>=0.3.8",
 ]
 
 [tool.uv]
 # Limit resolution to the platforms this project actually targets.
 environments = [
-    "sys_platform == 'darwin'",
     "sys_platform == 'linux'  and platform_machine == 'x86_64'",
     "sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
