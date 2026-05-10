@@ -68,6 +68,7 @@ To train a small 111M parameter model, run the following command. This will work
 
 ```bash
 uv run python train.py configs/111m.yaml
+uv run python train.py configs/111m_cpu.yaml
 ```
 
 To train a 70B parameter model on a single CS system, run:

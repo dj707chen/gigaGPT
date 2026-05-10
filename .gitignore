@@ -1,3 +1,16 @@
+__pycache__/
+data/openwebtext/train.bin
+data/openwebtext/val.bin
+executors/
+model_dir/
+
+000001
+data/shakespeare_char/input.txt
+data/shakespeare_char/meta.pkl
+data/shakespeare_char/train.bin
+data/shakespeare_char/val.bin
+out/
+
 CSL/SDK
 
 # deps
