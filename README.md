@@ -55,14 +55,13 @@ To train a small 111M parameter model, run the following command. This will work
 (although CPU will be too slow to get that far).
 
 ```bash
-uv run python train.py configs/111m.yaml
-uv run python train.py configs/111m_cpu.yaml
+python train.py configs/111m.yaml
 ```
 
 To train a 70B parameter model on a single CS system, run:
 
 ```bash
-uv run python train.py configs/70b.yaml
+python train.py configs/70b.yaml
 ```
 
 The 70B model will not work on GPUs due to memory limitations.
@@ -70,7 +69,7 @@ The 70B model will not work on GPUs due to memory limitations.
 Similarly, to run a 70B model on a cluster of 16 CS systems, change `num_systems` to `16` in `configs/70b.yaml` and run
 
 ```bash
-uv run python train.py configs/70b.yaml
+python train.py configs/70b.yaml
 ```
 
 Note that it's exactly the same command regardless of the number of systems you are parallelizing across.
@@ -81,7 +80,7 @@ Note that it's exactly the same command regardless of the number of systems you 
 In order to get upstream evaluation numbers, you can use the `eval.py` script, for example
 
 ```bash
-uv run python eval.py configs/70b.yaml --checkpoint_path /path/to/checkpoint.mdl
+python eval.py configs/70b.yaml --checkpoint_path /path/to/checkpoint.mdl
 ```
 
 ## Generation
@@ -89,7 +88,7 @@ uv run python eval.py configs/70b.yaml --checkpoint_path /path/to/checkpoint.mdl
 Generation on GPU or CPU is supported through the HuggingFace transformers library. For example,
 
 ```bash
-uv run python sample.py --checkpoint_path model_dir/checkpoint_10000.mdl
+python sample.py --checkpoint_path model_dir/checkpoint_10000.mdl
 ```
 
 See `sample.py` for more information on the different options you can play with to improve

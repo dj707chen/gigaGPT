@@ -30,10 +30,7 @@ logger.setLevel(logging.INFO)
 
 
 def main(model_config, config, cs_config):
-    backend_kwargs = {}
-    if config.backend == "CSX":
-        backend_kwargs["cluster_config"] = cs_config
-    backend = cstorch.backend(config.backend, **backend_kwargs)
+    backend = cstorch.backend(config.backend, cluster_config=cs_config)
 
     out_dir = Path(config.out_dir)
 
