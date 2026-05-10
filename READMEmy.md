@@ -1,26 +1,139 @@
-This project uses the requirements.txt to manage dependencies,
-I'm not familiar with it, so Gooled
+# gigaGPT
 
-    Tell me how to use PYTHON-SETUP.md, setup.py and requirements.txt in Python project.
+![gigaGPT](assets/boats.png)
 
-```shell
-uv run --no-project --with datasets==2.19.1 --with tiktoken==0.7.0 --with tqdm==4.66.1 --with numpy==1.24.4 python data/openwebtext/prepare.py
+We present gigaGPT – the simplest implementation for training large language models with tens or hundreds of billions of parameters. This work was inspired by Andrej Karpathy's [nanoGPT](https://github.com/karpathy/nanoGPT/tree/master). However, while nanoGPT is designed to train medium sized models up to around the 1B parameter range, gigaGPT leverages Cerebras hardware to use a single simple model definition and training loop to scale to GPT-3 sized models run across exaflop scale clusters. See our [technical blog](https://www.cerebras.net/blog/gigaGPT) for a detailed overview.
 
+As in nanoGPT, the main training logic is split between [`train.py`](./train.py) and [`model.py`](./model.py), with a total of 565 lines of simple, readable pytorch code combined. While nanoGPT can replicate GPT-2, gigaGPT is built to be able to replicate something of the scale of GPT-3 (albeit possibly with a dataset upgrade compared to the nanoGPT support). We have tested that models up to 175b parameters in size run functionally correctly at high throughput and have no reason to suspect that you can't scale significantly larger.
+While this code will run on CPU or GPU without errors for small models, it only really shines to its full potential when run on Cerebras hardware. The combination of the scale of the hardware, the weight streaming execution mode, and the data parallel scale-out across machines is what provides the magic required for easy scale-out to larger models and larger clusters.
+
+## Models
+
+| Parameters | Layers | Width | Heads | Learning Rate | Sequence Length | Batch size (seq) |
+| ---------- | ------ | ----- | ----- | ------------- | --------------- | ---------------- |
+| 111M       | 10     | 768   | 12    | 6.0e-4        | 2048            | 120              |
+| 13B        | 40     | 5120  | 40    | 1.2e-4        | 2048            | 1080             |
+| 70B        | 80     | 8192  | 64    | 1.0e-6        | 2048            | 1472             |
+| 175B       | 96     | 12288 | 96    | 5.0e-6        | 2048            | 1472             |
+
+gigaGPT implements the basic GPT-2 architecture in a way that matches nanoGPT. In particular, we use learned position embeddings, standard attention, and biases throughout the model, although this choice was primarily to stick closely to nanoGPT, and these things could all be easily changed. We validate gigaGPT by training four models with 111M, 13B, 70B, and 175B parameters. Details are presented in the table above. All the models tested use the OpenWebText dataset using the GPT-2 tokenizer with preprocessing code taken from nanoGPT. As the goal of this project was to create a clean, performant, and usable code base for others to use rather than to train state of the art models ourselves, our validation was geared towards functional correctness rather than convergence, downstream performance, or other similar metrics.
+
+The configurations for these models are provided in the `configs` directory. The models from 111M to 13B take their dimensions, learning rates, batch sizes, and training schedules from CerebrasGPT, compared to which they differ primarily in dataset. The 70B configuration is losely inspired by Llama-2 70B and gets its model dimensions, 2T token training schedule, and approximate batch size from that work. The 175B configuration takes the 70B configuration and modifies its model dimensions to match what was reported in the original GPT-3 paper, adjusting learning rate and initializations accordingly in line with common heuristics. Again we emphasize that these models are meant to demonstrate the scaling and performance of the model code rather than training to completion. Users will likely have to choose hyperparameters more carefully if they intend to do large-scale training runs, especially for the 70B and 175B models.
+
+Here are some training curves from start of the runs of three of these configs (111M, 13B and 70B respectively). Due to computational limitations we don't run all of them to convergence.
+
+![111M](assets/111m.png)
+
+![13B](assets/13b.png)
+
+![70B](assets/70b.png)
+
+## Quick start
+
+### Environment setup
+This project is managed with [`uv`](https://docs.astral.sh/uv/). Dependencies are defined in `pyproject.toml` and pinned in `uv.lock`.
+
+```bash
+# once per machine (project uses Python 3.8)
+uv python install 3.8
+
+# CPU/CSX runs
+uv sync --python 3.8 --extra-index-url https://download.pytorch.org/whl/cpu
+
+# GPU runs
+uv sync --python 3.8
+```
+
+`cerebras_pytorch==2.5.0` publishes Linux x86_64 wheels, so run `uv sync` on a Linux x86_64 host.
+
+### Download the datasets
+The first step is to generate the training data. The data preprocessing code is taken directly from nanoGPT
+and is quite simple. For example, to preprocess OWT, run
+
+```bash
 uv run python data/openwebtext/prepare.py
-
-uv sync
-# Resolved 85 packages in 347ms
-# error: Distribution `cerebras-pytorch==2.5.0 @ registry+https://pypi.org/simple` can't be installed because it doesn't have a source distribution or wheel for the current platform
 ```
 
-## Need to work on Linux system on x86_64!
+Each individual dataset directory has a README describing some basic characteristics of it. The smaller
+datasets are nice for debugging and toy runs (for example if all you have is a CPU), but if you're
+running any of the configurations provided with this repo you'll want open web text.
 
-Due the above error, need to try in Linux shell:
-```shell
-source .venv/bin/activate
-export PATH=$PATH:/Users/weiping/.antigravity/antigravity/bin:/Users/weiping/.bun/bin:/Users/weiping/.nvm/versions/node/v24.12.0/bin:/Users/weiping/.sdkman/candidates/scala/current/bin:/Users/weiping/.sdkman/candidates/sbt/current/bin:/Users/weiping/.sdkman/candidates/java/current/bin:/Applications/PyCharm.app/Contents/MacOS:/Users/weiping/.krew/bin:/Users/weiping/w1/environments/scripts/debugging:/Users/weiping/tools/helix-24.07-x86_64-macos:/Users/weiping/repoMy/fs2-kafkaLab/scripts:/Users/weiping/dev/groovy-3.0.9/bin:/Users/weiping/repoOSS/redis/src:/Users/weiping/.local/bin:/Users/weiping/go/bin:/Users/weiping/tools:/Users/weiping/bin:/Applications/RustRover.app/Contents/MacOS:/opt/homebrew/opt/postgresql@15/bin:/usr/local/Cellar/podman-compose/1.0.6/bin:/usr/local/Cellar/podman/5.1.1/bin:/usr/libexec:/opt/homebrew/Cellar/bash/5.3.3/bin:/Users/weiping/.jenv/shims:/Users/weiping/.jenv/bin:/bin:.:./node_modules/.bin:/Users/weiping/dev/confluent-6.2.1/bin:/usr/local/opt/scala@2.13/bin:/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/usr/local/go/bin:/Users/weiping/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities
+### Update the configuration files
+Each configuration file has a few placeholders for paths that will depend on how you set up your code and data. Before you run any models you need to go back through and put real paths in for the placeholders. The paths you supply should be absolute paths.
+
+### Launch model training
+
+To train a small 111M parameter model, run the following command. This will work on Cerebras CS-2, GPU, or CPU
+(although CPU will be too slow to get that far).
+
+```bash
+uv run python train.py configs/111m.yaml
+uv run python train.py configs/111m_cpu.yaml
 ```
 
-But this does not work, next considering a Linux laptop:
-- best laptop running x86_64: https://www.google.com/search?q=best+laptop+running+x86_64&oq=best+laptop+running+x86_64&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRigATIHCAIQIRigATIHCAMQIRigATIHCAQQIRigATIHCAUQIRigATIHCAYQIRiPAjIHCAcQIRiPAtIBCDcxMTBqMGo3qAIAsAIA&sourceid=chrome&ie=UTF-8
-- Install Linux on Windows: https://www.google.com/search?q=install++linux+on+Lenovo+ThinkPad+x1&sca_esv=80bb2a0df4fb4cf7&sxsrf=ANbL-n5P0o7zMMG-N2y0Ufy_Bgt1xPdBWQ%3A1778037564000&ei=O7P6abPqPKqvptQPyvflqQw&biw=1689&bih=880&ved=0ahUKEwjz85iL2qOUAxWql4kEHcp7OcUQ4dUDCBM&uact=5&oq=install++linux+on+Lenovo+ThinkPad+x1&gs_lp=Egxnd3Mtd2l6LXNlcnAiJGluc3RhbGwgIGxpbnV4IG9uIExlbm92byBUaGlua1BhZCB4MTIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAkiqhgFQjAVYvIIBcAJ4AZABAJgBXqABxQqqAQIxObgBA8gBAPgBAfgBApgCFaACpwvCAgoQABhHGNYEGLADwgILEAAYgAQYigUYkQLCAgYQABgHGB7CAgUQABiABMICChAAGIAEGBQYhwLCAgYQABgWGB7CAgsQABiABBiKBRiGA8ICBRAAGO8FwgIIEAAYgAQYogTCAggQABgWGB4YCpgDAIgGAZAGCJIHAjIxoAeeZLIHAjE5uAedC8IHBjAuMTMuOMgHO4AIAQ&sclient=gws-wiz-serp
+To train a 70B parameter model on a single CS system, run:
+
+```bash
+uv run python train.py configs/70b.yaml
+```
+
+The 70B model will not work on GPUs due to memory limitations.
+
+Similarly, to run a 70B model on a cluster of 16 CS systems, change `num_systems` to `16` in `configs/70b.yaml` and run
+
+```bash
+uv run python train.py configs/70b.yaml
+```
+
+Note that it's exactly the same command regardless of the number of systems you are parallelizing across.
+
+
+## Evaluation
+
+In order to get upstream evaluation numbers, you can use the `eval.py` script, for example
+
+```bash
+uv run python eval.py configs/70b.yaml --checkpoint_path /path/to/checkpoint.mdl
+```
+
+## Generation
+
+Generation on GPU or CPU is supported through the HuggingFace transformers library. For example,
+
+```bash
+uv run python sample.py --checkpoint_path model_dir/checkpoint_10000.mdl
+```
+
+See `sample.py` for more information on the different options you can play with to improve
+generation quality.
+
+## Codebase comparison
+The standard way to train a GPT-3 sized model is to use frameworks such as Nvidia Megatron. Megatron however is a large and complex framework that’s challenging to implement. This is what motivated the creation of nanoGPT – a light, readable, hackable framework. To quantify the complexity of these frameworks, we counted the lines of code in reach repo. Megatron has 20,507, lines of code while nanoGPT and gigaGPT have 639 and 565 lines of code respectively. This supports our primary claim that gigaGPT trains GPT-3 sized models while retaining the simplicity of nanoGPT.
+
+Megatron-LM
+
+| Language                  | files |        blank |      comment |         code|
+| ------------------------- | ----- | ------------ | ------------ | ----------- |
+| Python                    |    99 |         4710 |         4407 |       18395 |
+| C/C++ Header              |     4 |          146 |           90 |        1118 |
+| C++                       |     4 |          137 |          117 |         649 |
+| CUDA                      |     3 |           41 |           20 |         220 |
+| HTML                      |     1 |           15 |            2 |         107 |
+| Bourne Shell              |     1 |            1 |            0 |           9 |
+| make                      |     1 |            2 |            0 |           7 |
+| SUM:                      |   115 |         5052 |         4636 |       20507 |
+
+
+nanoGPT
+
+| Language                  | files |        blank |      comment |         code|
+| ------------------------- | ----- | ------------ | ------------ | ----------- |
+| Python                    |     5 |           90 |          187 |         639 |
+| SUM:                      |     5 |           90 |          187 |         639 |
+
+gigaGPT
+
+| Language                  | files |        blank |      comment |         code|
+| ------------------------- | ----- | ------------ | ------------ | ----------- |
+| Python                    |     6 |          109 |            1 |         565 |
+| SUM:                      |     6 |          109 |            1 |         565 |
