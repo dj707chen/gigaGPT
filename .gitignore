@@ -1,8 +1,8 @@
 __pycache__
 
-data/shakespeare_char/input.txt
-data/shakespeare_char/*.pkl
-data/shakespeare_char/*.bin
+data/**/input.txt
+data/**/*.pkl
+data/**/*.bin
 executors
 0000*
 
