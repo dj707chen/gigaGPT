@@ -1,0 +1,49 @@
+minimumLimaVersion: 2.0.0
+
+containerd:
+  system: false
+  user: false
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      command -v apptainer >/dev/null 2>&1 && exit 0
+      # Workaround for https://github.com/apptainer/apptainer/issues/2027
+      echo "kernel.apparmor_restrict_unprivileged_userns = 0" >/etc/sysctl.d/99-userns.conf
+      sysctl --system
+      # add the "Official PPA for Apptainer"
+      add-apt-repository -y ppa:apptainer/ppa
+      apt-get update
+      apt-get install -y apptainer
+probes:
+  - script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      if ! timeout 30s bash -c "until command -v apptainer >/dev/null 2>&1; do sleep 3; done"; then
+        echo >&2 "apptainer is not installed yet"
+        exit 1
+      fi
+    hint: See "/var/log/cloud-init-output.log" in the guest
+
+images:
+  # Try to use release-yyyyMMdd image if available. Note that release-yyyyMMdd will be removed after several months.
+  - location: "https://cloud-images.ubuntu.com/releases/noble/release-20251213/ubuntu-24.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+    digest: "sha256:a40713938d74aaec811f74cb1fa8bfcb535d22e26b2a0ca1cc90ad9db898feb9"
+  - location: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+    arch: aarch64
+
+mounts:
+  - location: "~"
+    writable: true
+  - location: "/tmp/lima"
+    writable: true
+
+mountType: "virtiofs"
+
+vmOpts:
+  vz:
+    rosetta:
+      enabled: true
+      binfmt: true

@@ -1,0 +1,29 @@
+# Small model config for local CPU testing on macOS ARM64.
+# Uses a tiny GPT model (~1.6M params) for fast iteration.
+#
+# Before running, prepare the Shakespeare dataset:
+#   GENERATING_CEREBRAS_PYTORCH_DOCS=1 uv run -p 3.12 python data/shakespeare_char/prepare.py
+#
+# Then run:
+#   GENERATING_CEREBRAS_PYTORCH_DOCS=1 uv run -p 3.12 python train.py configs/cpu_small.yaml
+
+# model params
+width: 128
+depth: 4
+max_position_embeddings: 256
+heads: 4
+vocab_size: 50257
+dropout: 0.0
+bias: true
+
+# run params
+out_dir: out/cpu_small
+dataset: data/shakespeare_char
+batch_size: 4
+sequence_length: 256
+num_steps: 100
+checkpoint_steps: 50
+learning_rate: 3.0e-4
+warmup_steps: 10
+backend: "CPU"
+seed: 42

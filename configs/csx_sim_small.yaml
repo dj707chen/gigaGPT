@@ -1,0 +1,44 @@
+# Small model config for CSX simulation backend.
+# Uses the same tiny GPT model (~1.6M params) as cpu_small.yaml.
+#
+# Before running, prepare the Shakespeare dataset:
+#   uv run -p 3.12 python data/shakespeare_char/prepare.py
+#
+# Then run:
+#   uv run -p 3.12 python train.py configs/csx_sim_small.yaml
+
+# model params
+width: 128
+depth: 4
+max_position_embeddings: 256
+heads: 4
+vocab_size: 50257
+dropout: 0.0
+bias: true
+
+# run params
+out_dir: out/csx_sim_small
+dataset: data/shakespeare_char
+batch_size: 4
+sequence_length: 256
+num_steps: 100
+checkpoint_steps: 50
+learning_rate: 3.0e-4
+warmup_steps: 10
+backend: "CSX"
+seed: 42
+
+# CSX simulation memory limits (GiB) — smaller values suit the simulator
+execute_crd_memory_gi: 32
+compile_crd_memory_gi: 50
+
+# ClusterConfig: point mgmt_address at the simfab appliance
+mgmt_address: "localhost:9000"  # replace with your simfab address
+num_csx: 1
+num_workers_per_csx: 1
+
+# Paths the appliance workers need access to
+mount_dirs:
+  - /home/weiping/Cerebras/gigaGPT
+python_paths:
+  - /home/weiping/Cerebras/gigaGPT
