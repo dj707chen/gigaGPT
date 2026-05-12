@@ -39,6 +39,6 @@ num_workers_per_csx: 1
 
 # Paths the appliance workers need access to
 mount_dirs:
-  - /home/weiping/AI/gigaGPT
+  - /home/weiping/Cerebras/gigaGPT
 python_paths:
-  - /home/weiping/AI/gigaGPT
+  - /home/weiping/Cerebras/gigaGPT
