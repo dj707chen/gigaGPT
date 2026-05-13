@@ -21,8 +21,9 @@ uv run -p 3.11 python train.py configs/csx_sim_small.yaml
 # Fix: chmod +x cerebras-pytorch-src/.../pytorch/lib/torch-cirh-opt, add to PATH.
 
 # Attempt 4: add torch-cirh-opt to PATH — compilation succeeds, then hits network
-PATH="/home/WChen/Cerebras/cerebras-pytorch-src/cerebras_pytorch-2.10.0/cerebras/pytorch/lib:$PATH"
-PATH="/home/weiping/Cerebras/cerebras-pytorch-src/cerebras_pytorch-2.10.0/cerebras/pytorch/lib:$PATH"
+cd ${HOME}/Cerebras/gigaGPT
+
+PATH="${HOME}/Cerebras/cerebras-pytorch-src/cerebras_pytorch-2.10.0/cerebras/pytorch/lib:$PATH"
 uv run -p 3.11 python train.py configs/csx_sim_small.yaml
 # grpc._channel._InactiveRpcError: Connection refused ipv4:127.0.0.1:9000
 # Torch→CIRH compilation ran successfully. Blocked by: no CSX appliance server at localhost:9000.
