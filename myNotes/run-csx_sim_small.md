@@ -22,6 +22,8 @@ uv run -p 3.11 python train.py configs/csx_sim_small.yaml
 
 # Attempt 4: add torch-cirh-opt to PATH — compilation succeeds, then hits network
 cd ${HOME}/Cerebras/gigaGPT
+source .venv/bin/activate
+uv pip install pip
 
 PATH="${HOME}/Cerebras/cerebras-pytorch-src/cerebras_pytorch-2.10.0/cerebras/pytorch/lib:$PATH"
 uv run -p 3.11 python train.py configs/csx_sim_small.yaml
