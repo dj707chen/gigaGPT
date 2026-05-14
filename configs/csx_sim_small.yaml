@@ -37,6 +37,8 @@ mgmt_address: "localhost:9000"  # replace with your simfab address
 num_csx: 1
 num_workers_per_csx: 1
 
+automount: false
+
 # Paths the appliance workers need access to
 mount_dirs:
   - /home/weiping/Cerebras/gigaGPT

@@ -24,8 +24,8 @@ uv run -p 3.11 python train.py configs/csx_sim_small.yaml
 cd ${HOME}/Cerebras/gigaGPT
 
 PATH="${HOME}/Cerebras/cerebras-pytorch-src/cerebras_pytorch-2.10.0/cerebras/pytorch/lib:$PATH"
-uv run -p 3.11 python train.py configs/csx_sim_small_macos.yaml
 uv run -p 3.11 python train.py configs/csx_sim_small.yaml
+uv run -p 3.11 python train.py configs/csx_sim_small_macos.yaml
 # grpc._channel._InactiveRpcError: Connection refused ipv4:127.0.0.1:9000
 # Torch→CIRH compilation ran successfully. Blocked by: no CSX appliance server at localhost:9000.
 
