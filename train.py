@@ -45,7 +45,7 @@ def main(model_config, config, cs_config):
 
     compiled_model = cstorch.compile(model, backend)
 
-    decay_params = [p for p in model.parameters() if p.dim() >= 2]
+    decay_params    = [p for p in model.parameters() if p.dim() >= 2]
     no_decay_params = [p for p in model.parameters() if p.dim() < 2]
     param_groups = [
         {"params": decay_params, "weight_decay": config.weight_decay},
