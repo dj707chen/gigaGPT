@@ -33,7 +33,7 @@ def main(model_config, config, cs_config):
     backend_kwargs = {}
     if config.backend == "CSX":
         backend_kwargs["cluster_config"] = cs_config
-    backend = cstorch.backend(config.backend, **backend_kwargs)
+    backend = cstorch.backend(config.backend, **backend_kwargs) # backend created here: https://github.com/dj707chen/cerebras-pytorch-src/blob/e7b7e2b497c689a36fb242b972cc8c5113918acb/cerebras_pytorch-2.10.0/cerebras/pytorch/backend/__init__.py#L89-L104
 
     out_dir = Path(config.out_dir)
 
@@ -41,9 +41,9 @@ def main(model_config, config, cs_config):
         cstorch.amp.set_half_dtype("bfloat16")
 
     with backend.device:
-        model = GPTModel(model_config)
+        model = GPTModel(model_config) # Create GPT LLM model, that's why this repo is called gigaGPT
 
-    compiled_model = cstorch.compile(model, backend)
+    compiled_model = cstorch.compile(model, backend) # https://github.com/dj707chen/cerebras-pytorch-src/blob/e7b7e2b497c689a36fb242b972cc8c5113918acb/cerebras_pytorch-2.10.0/cerebras/pytorch/core/compile.py#L63
 
     decay_params    = [p for p in model.parameters() if p.dim() >= 2]
     no_decay_params = [p for p in model.parameters() if p.dim() < 2]
